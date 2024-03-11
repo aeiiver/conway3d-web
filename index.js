@@ -35,21 +35,24 @@ let camFront = new THREE.Vector3(0, 0, -1);
 cam.position.set(0, 0, 10);
 cam.lookAt(cam.position.clone().add(camFront));
 
-let cubes = new Array(conway.grid.length).fill(0).map(
-  _z => new Array(conway.grid.length).fill(0).map(
-    _y => new Array(conway.grid.length).fill(0).map(
-      // I know this looks expensive but we had no choice in Vanilla JS
-      _x => new THREE.LineSegments(undefined, undefined)
+let con = conway.init(10, 10, 10);
+conway.populate(con, 0.5);
+
+/** @type {THREE.LineSegments<THREE.EdgesGeometry<THREE.BoxGeometry>, THREE.MeshBasicMaterial, THREE.Object3DEventMap>[][][]} */
+let cubes = new Array(con.depth).fill(0).map(
+  _z => new Array(con.height).fill(0).map(
+    _y => new Array(con.width).fill(0).map(
+      _x => new THREE.LineSegments()
     )
   )
 );
 
-for (let z = 0; z < conway.grid.length; z += 1) {
-  for (let y = 0; y < conway.grid[0].length; y += 1) {
-    for (let x = 0; x < conway.grid[0][0].length; x += 1) {
+for (let z = 0; z < con.depth; z += 1) {
+  for (let y = 0; y < con.height; y += 1) {
+    for (let x = 0; x < con.width; x += 1) {
       let geometry = new THREE.BoxGeometry();
       let edges = new THREE.EdgesGeometry(geometry);
-      let material = new THREE.MeshBasicMaterial({ color: conway.grid[z][y][x] === 1 ? 0xFFFFFF : 0x202020 });
+      let material = new THREE.MeshBasicMaterial({ color: con.grid[z][y][x] === 'alive' ? 0xFFFFFF : 0x202020 });
       let cube = new THREE.LineSegments(edges, material);
       scene.add(cube);
 
@@ -80,7 +83,7 @@ function keyMove(ev) {
   if (ev.ctrlKey)
     camSpeed.y = -camAccel;
   if (ev.code === 'KeyN')
-    conway.next();
+    conway.next(con);
 }
 window.addEventListener('keypress', keyMove);
 
@@ -145,10 +148,10 @@ window.addEventListener('pointerlockchange', _ev => {
 });
 
 function render() {
-  for (let z = 0; z < conway.grid.length; z += 1) {
-    for (let y = 0; y < conway.grid[0].length; y += 1) {
-      for (let x = 0; x < conway.grid[0][0].length; x += 1) {
-        cubes[z][y][x].material.color.setHex(conway.grid[z][y][x] === 1 ? 0xFFFFFF : 0x202020);
+  for (let z = 0; z < con.depth; z += 1) {
+    for (let y = 0; y < con.height; y += 1) {
+      for (let x = 0; x < con.width; x += 1) {
+        cubes[z][y][x].material.color.setHex(con.grid[z][y][x] === 'alive' ? 0xFFFFFF : 0x202020);
       }
     }
   }
