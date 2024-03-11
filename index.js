@@ -156,12 +156,11 @@ function handleMouse(ev) {
 
 renderer.domElement.addEventListener('click', async _ev => {
   if (!document.pointerLockElement) {
-    // @ts-ignore
-    renderer.domElement.requestPointerLock();
+    await renderer.domElement.requestPointerLock();
   }
 });
 
-window.addEventListener('pointerlockchange', _ev => {
+document.addEventListener('pointerlockchange', _ev => {
   if (document.pointerLockElement === renderer.domElement) {
     renderer.domElement.addEventListener('mousemove', handleMouse);
   } else {
