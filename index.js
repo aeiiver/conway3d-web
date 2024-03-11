@@ -31,12 +31,13 @@ let scene = new THREE.Scene();
 let cam = new THREE.PerspectiveCamera(fov, width / height, near, far);
 let camSpeed = new THREE.Vector3();
 let camAccel = 0.1;
-let camFront = new THREE.Vector3(0, 0, -1);
-cam.position.set(0, 0, 10);
-cam.lookAt(cam.position.clone().add(camFront));
 
-let con = conway.init(10, 10, 10);
+let con = conway.init(20, 20, 20);
 conway.populate(con, 0.5);
+
+let camFront = new THREE.Vector3(con.width, con.height, con.depth);
+cam.position.set(con.width, con.height, con.depth * 2.5);
+cam.lookAt(camFront);
 
 /** @type {THREE.LineSegments<THREE.EdgesGeometry<THREE.BoxGeometry>, THREE.MeshBasicMaterial, THREE.Object3DEventMap>[][][]} */
 let cubes = new Array(con.depth).fill(0).map(
@@ -47,12 +48,29 @@ let cubes = new Array(con.depth).fill(0).map(
   )
 );
 
+{
+  let geometry = new THREE.BoxGeometry(con.width*2, con.height*2, con.depth*2);
+  let edges = new THREE.EdgesGeometry(geometry);
+  let material = new THREE.MeshBasicMaterial({ color: 0xFF0000 });
+  let cube = new THREE.LineSegments(edges, material);
+  scene.add(cube);
+
+  cube.translateZ(con.depth - 1);
+  cube.translateY(con.height - 1);
+  cube.translateX(con.width - 1);
+}
+
+let hexAlive = 0xFFFFFF;
+
 for (let z = 0; z < con.depth; z += 1) {
   for (let y = 0; y < con.height; y += 1) {
     for (let x = 0; x < con.width; x += 1) {
+      if (con.grid[z][y][x] === 'dead')
+        continue;
+
       let geometry = new THREE.BoxGeometry();
       let edges = new THREE.EdgesGeometry(geometry);
-      let material = new THREE.MeshBasicMaterial({ color: con.grid[z][y][x] === 'alive' ? 0xFFFFFF : 0x202020 });
+      let material = new THREE.MeshBasicMaterial({ color: hexAlive });
       let cube = new THREE.LineSegments(edges, material);
       scene.add(cube);
 
@@ -84,6 +102,10 @@ function keyMove(ev) {
     camSpeed.y = -camAccel;
   if (ev.code === 'KeyN')
     conway.next(con);
+  if (ev.code === 'KeyR') {
+    conway.reset(con);
+    conway.populate(con, 0.5);
+  }
 }
 window.addEventListener('keypress', keyMove);
 
@@ -151,7 +173,12 @@ function render() {
   for (let z = 0; z < con.depth; z += 1) {
     for (let y = 0; y < con.height; y += 1) {
       for (let x = 0; x < con.width; x += 1) {
-        cubes[z][y][x].material.color.setHex(con.grid[z][y][x] === 'alive' ? 0xFFFFFF : 0x202020);
+        if (con.grid[z][y][x] === 'alive') {
+          cubes[z][y][x].material.color.setHex(hexAlive);
+          cubes[z][y][x].visible = true;
+        } else {
+          cubes[z][y][x].visible = false;
+        }
       }
     }
   }
