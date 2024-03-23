@@ -2,7 +2,7 @@
 
 It's your average game of life visualization.
 
-[!Preview](assets/preview.gif)
+![Preview](assets/preview.gif)
 
 ### Controls
 
